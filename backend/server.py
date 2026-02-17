@@ -430,6 +430,22 @@ async def validate_fiche(fiche_id: str):
         logging.error(f"Error generating Excel: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur génération Excel: {str(e)}")
 
+def safe_write_cell(ws, cell_coord: str, value):
+    """Safely write to a cell, handling merged cells"""
+    if value is None:
+        return
+    
+    # Find if cell is in a merged range
+    for merged_range in ws.merged_cells.ranges:
+        if cell_coord in merged_range:
+            # Get top-left cell of merged range
+            top_left = str(merged_range).split(':')[0]
+            ws[top_left] = value
+            return
+    
+    # Not merged, write directly
+    ws[cell_coord] = value
+
 async def generate_excel(fiche: FicheQSE) -> str:
     """Generate Excel file from fiche data"""
     
