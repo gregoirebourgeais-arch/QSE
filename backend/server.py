@@ -469,55 +469,55 @@ async def generate_excel(fiche: FicheQSE) -> str:
     
     if fiche.type == "Qualité":
         # Quality sheet specific cells
-        ws["E6"] = date_str
-        ws["G6"] = fiche.heure_evenement
-        ws["L6"] = fiche.constate_par
-        ws["E7"] = fiche.service_emetteur
-        ws["M7"] = fiche.service_concerne
+        safe_write_cell(ws, "E6", date_str)
+        safe_write_cell(ws, "G6", fiche.heure_evenement)
+        safe_write_cell(ws, "L6", fiche.constate_par)
+        safe_write_cell(ws, "E7", fiche.service_emetteur)
+        safe_write_cell(ws, "M7", fiche.service_concerne)
         
         # Identification
-        ws["G9"] = fiche.non_conformite_constatee
-        ws["G10"] = fiche.defaut
-        ws["G11"] = fiche.ccp_prpo
-        ws["G12"] = fiche.categorie_corps_etranger
-        ws["G13"] = fiche.quantite_concernee
+        safe_write_cell(ws, "G9", fiche.non_conformite_constatee)
+        safe_write_cell(ws, "G10", fiche.defaut)
+        safe_write_cell(ws, "G11", fiche.ccp_prpo)
+        safe_write_cell(ws, "G12", fiche.categorie_corps_etranger)
+        safe_write_cell(ws, "G13", fiche.quantite_concernee)
         
         # Traceability
-        ws["G14"] = fiche.produit
-        ws["L14"] = fiche.numero_lot
-        ws["G15"] = fiche.grammage
-        ws["L15"] = fiche.numero_palette
-        ws["G16"] = fiche.marque
-        ws["L16"] = fiche.code_sca
-        ws["G17"] = fiche.ligne
-        ws["L17"] = fiche.reference_interne
-        ws["G18"] = fiche.ddm
-        ws["L18"] = fiche.date_production
-        ws["G19"] = fiche.quantieme
-        ws["L19"] = fiche.numero_bobine
-        ws["G20"] = fiche.heure_production
-        ws["L20"] = fiche.autres_tracabilite
+        safe_write_cell(ws, "G14", fiche.produit)
+        safe_write_cell(ws, "L14", fiche.numero_lot)
+        safe_write_cell(ws, "G15", fiche.grammage)
+        safe_write_cell(ws, "L15", fiche.numero_palette)
+        safe_write_cell(ws, "G16", fiche.marque)
+        safe_write_cell(ws, "L16", fiche.code_sca)
+        safe_write_cell(ws, "G17", fiche.ligne)
+        safe_write_cell(ws, "L17", fiche.reference_interne)
+        safe_write_cell(ws, "G18", fiche.ddm)
+        safe_write_cell(ws, "L18", fiche.date_production)
+        safe_write_cell(ws, "G19", fiche.quantieme)
+        safe_write_cell(ws, "L19", fiche.numero_bobine)
+        safe_write_cell(ws, "G20", fiche.heure_production)
+        safe_write_cell(ws, "L20", fiche.autres_tracabilite)
         
         # Description
-        ws["D22"] = fiche.description
+        safe_write_cell(ws, "D22", fiche.description)
         
         # Criticality
         if fiche.criticite == "Mineure":
-            ws["H30"] = "X"
+            safe_write_cell(ws, "H30", "X")
         elif fiche.criticite == "Majeure":
-            ws["L30"] = "X"
+            safe_write_cell(ws, "L30", "X")
         elif fiche.criticite == "Critique":
-            ws["N30"] = "X"
+            safe_write_cell(ws, "N30", "X")
         
-        ws["N31"] = fiche.impact_securite_aliments
+        safe_write_cell(ws, "N31", fiche.impact_securite_aliments)
         
         # Treatment
         if fiche.traitement_blocage:
-            ws["E35"] = "X"
+            safe_write_cell(ws, "E35", "X")
         if fiche.traitement_methanisation:
-            ws["J35"] = "X"
+            safe_write_cell(ws, "J35", "X")
         if fiche.traitement_fonte:
-            ws["E37"] = "X"
+            safe_write_cell(ws, "E37", "X")
         if fiche.traitement_analyses:
             ws["J37"] = "X"
         if fiche.traitement_alimentation_animale:
