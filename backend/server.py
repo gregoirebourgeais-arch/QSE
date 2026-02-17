@@ -519,84 +519,85 @@ async def generate_excel(fiche: FicheQSE) -> str:
         if fiche.traitement_fonte:
             safe_write_cell(ws, "E37", "X")
         if fiche.traitement_analyses:
-            ws["J37"] = "X"
+            safe_write_cell(ws, "J37", "X")
         if fiche.traitement_alimentation_animale:
-            ws["E39"] = "X"
+            safe_write_cell(ws, "E39", "X")
         if fiche.traitement_autres:
-            ws["J39"] = fiche.traitement_autres
+            safe_write_cell(ws, "J39", fiche.traitement_autres)
         
-        ws["E41"] = fiche.date_traitement
-        ws["L41"] = fiche.nom_traitement
+        safe_write_cell(ws, "E41", fiche.date_traitement)
+        safe_write_cell(ws, "L41", fiche.nom_traitement)
         
         # Causes (5M)
-        ws["G43"] = fiche.cause_main_oeuvre
-        ws["G44"] = fiche.cause_materiel
-        ws["G45"] = fiche.cause_methode
-        ws["G46"] = fiche.cause_milieu
-        ws["G47"] = fiche.cause_matiere
+        safe_write_cell(ws, "G43", fiche.cause_main_oeuvre)
+        safe_write_cell(ws, "G44", fiche.cause_materiel)
+        safe_write_cell(ws, "G45", fiche.cause_methode)
+        safe_write_cell(ws, "G46", fiche.cause_milieu)
+        safe_write_cell(ws, "G47", fiche.cause_matiere)
         
         # Corrective actions
         for i, action in enumerate(fiche.actions_correctives[:5]):
             row = 51 + i
-            ws[f"E{row}"] = action.action
-            ws[f"J{row}"] = action.responsable
-            ws[f"L{row}"] = action.delai
-            ws[f"N{row}"] = action.statut
+            safe_write_cell(ws, f"E{row}", action.action)
+            safe_write_cell(ws, f"J{row}", action.responsable)
+            safe_write_cell(ws, f"L{row}", action.delai)
+            safe_write_cell(ws, f"N{row}", action.statut)
     
     elif fiche.type == "Sécurité":
         # Safety sheet
-        ws["E6"] = date_str
-        ws["L6"] = fiche.constate_par
-        ws["E7"] = fiche.service_emetteur
+        safe_write_cell(ws, "E6", date_str)
+        safe_write_cell(ws, "L6", fiche.constate_par)
+        safe_write_cell(ws, "E7", fiche.service_emetteur)
         
         # Type d'incident (checkboxes)
         if fiche.type_incident == "Presqu'accident":
-            ws["E9"] = "X"
+            safe_write_cell(ws, "E9", "X")
         elif fiche.type_incident == "Risques psychosociaux":
-            ws["N9"] = "X"
+            safe_write_cell(ws, "N9", "X")
         elif fiche.type_incident == "Situation dangereuse":
-            ws["E12"] = "X"
+            safe_write_cell(ws, "E12", "X")
         elif fiche.type_incident == "Acte dangereux":
-            ws["E14"] = "X"
+            safe_write_cell(ws, "E14", "X")
         elif fiche.type_incident == "Impact environnemental":
-            ws["N15"] = "X"
+            safe_write_cell(ws, "N15", "X")
         
         # Description
-        ws["D17"] = fiche.description
+        safe_write_cell(ws, "D17", fiche.description)
         
         # Règle d'or
-        ws["G24"] = fiche.regle_or
+        safe_write_cell(ws, "G24", fiche.regle_or)
         
         # Causes
-        ws["D26"] = f"Main d'œuvre: {fiche.cause_main_oeuvre or ''}\nMatériel: {fiche.cause_materiel or ''}\nMéthode: {fiche.cause_methode or ''}\nMilieu: {fiche.cause_milieu or ''}"
+        causes_text = f"Main d'œuvre: {fiche.cause_main_oeuvre or ''}\nMatériel: {fiche.cause_materiel or ''}\nMéthode: {fiche.cause_methode or ''}\nMilieu: {fiche.cause_milieu or ''}"
+        safe_write_cell(ws, "D26", causes_text)
         
         # Actions
         for i, action in enumerate(fiche.actions_correctives[:3]):
             if i == 0:
-                ws["E31"] = action.action
+                safe_write_cell(ws, "E31", action.action)
             else:
-                ws["E32"] = action.action
-            ws[f"J{31+i}"] = action.responsable
-            ws[f"L{31+i}"] = action.delai
+                safe_write_cell(ws, "E32", action.action)
+            safe_write_cell(ws, f"J{31+i}", action.responsable)
+            safe_write_cell(ws, f"L{31+i}", action.delai)
         
         # Redaction date
-        ws["E35"] = date_str
-        ws["L35"] = fiche.constate_par
+        safe_write_cell(ws, "E35", date_str)
+        safe_write_cell(ws, "L35", fiche.constate_par)
     
     else:  # Environment
-        ws["E6"] = date_str
-        ws["L6"] = fiche.constate_par
-        ws["E7"] = fiche.service_emetteur
+        safe_write_cell(ws, "E6", date_str)
+        safe_write_cell(ws, "L6", fiche.constate_par)
+        safe_write_cell(ws, "E7", fiche.service_emetteur)
         
         # Type environnement
         if fiche.type_env and "Eaux" in fiche.type_env:
-            ws["E10"] = "X"
+            safe_write_cell(ws, "E10", "X")
         if fiche.type_env and "Air" in fiche.type_env:
-            ws["E13"] = "X"
+            safe_write_cell(ws, "E13", "X")
         if fiche.type_env and "Sol" in fiche.type_env:
-            ws["E15"] = "X"
+            safe_write_cell(ws, "E15", "X")
         if fiche.type_env and "Déchets" in fiche.type_env:
-            ws["N10"] = "X"
+            safe_write_cell(ws, "N10", "X")
         
         # Description
         ws["D18"] = fiche.description
