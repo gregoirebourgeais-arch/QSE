@@ -600,26 +600,26 @@ async def generate_excel(fiche: FicheQSE) -> str:
             safe_write_cell(ws, "N10", "X")
         
         # Description
-        ws["D18"] = fiche.description
+        safe_write_cell(ws, "D18", fiche.description)
         
         # Criticality
         if fiche.criticite == "Mineure":
-            ws["H26"] = "X"
+            safe_write_cell(ws, "H26", "X")
         elif fiche.criticite == "Majeure":
-            ws["L26"] = "X"
+            safe_write_cell(ws, "L26", "X")
         elif fiche.criticite == "Critique":
-            ws["N26"] = "X"
+            safe_write_cell(ws, "N26", "X")
         
         # Causes
-        ws["G35"] = fiche.cause_main_oeuvre
-        ws["G36"] = fiche.cause_materiel
-        ws["G37"] = fiche.cause_methode
-        ws["G38"] = fiche.cause_milieu
-        ws["G39"] = fiche.cause_matiere
+        safe_write_cell(ws, "G35", fiche.cause_main_oeuvre)
+        safe_write_cell(ws, "G36", fiche.cause_materiel)
+        safe_write_cell(ws, "G37", fiche.cause_methode)
+        safe_write_cell(ws, "G38", fiche.cause_milieu)
+        safe_write_cell(ws, "G39", fiche.cause_matiere)
         
         # Redaction
-        ws["E46"] = date_str
-        ws["L46"] = fiche.constate_par
+        safe_write_cell(ws, "E46", date_str)
+        safe_write_cell(ws, "L46", fiche.constate_par)
     
     # Generate filename
     service_clean = fiche.service_emetteur.replace(" ", "_").replace("/", "-")
