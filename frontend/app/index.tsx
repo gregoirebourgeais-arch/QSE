@@ -1,16 +1,28 @@
-import { Text, View, StyleSheet, Image } from "react-native";
-
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import React, { useEffect } from 'react';
+import { View, StyleSheet, Image, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../src/stores/authStore';
 
 export default function Index() {
-  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
+  const router = useRouter();
+  const { user, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.replace('/(tabs)/home');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [user, isLoading]);
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../assets/images/app-image.png")}
-        style={styles.image}
-      />
+      <View style={styles.logoContainer}>
+        <Text style={styles.logo}>QSE</Text>
+        <Text style={styles.subtitle}>Application Industrielle</Text>
+      </View>
     </View>
   );
 }
@@ -18,13 +30,21 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0c0c0c",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#0D0D0D',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
+  logoContainer: {
+    alignItems: 'center',
+  },
+  logo: {
+    fontSize: 64,
+    fontWeight: '900',
+    color: '#FF6B00',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#888',
+    marginTop: 8,
   },
 });
