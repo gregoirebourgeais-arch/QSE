@@ -11,7 +11,8 @@
     "lint": "expo lint",
     "start:local": "EXPO_NO_DOCTOR=1 expo start --lan",
     "start:offline": "EXPO_NO_DOCTOR=1 EXPO_OFFLINE=1 expo start --lan",
-    "web:local": "EXPO_NO_DOCTOR=1 expo start --web"
+    "web:local": "EXPO_NO_DOCTOR=1 expo start --web",
+    "build:android:apk": "eas build --platform android --profile preview"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.6",

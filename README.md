@@ -1,29 +1,38 @@
-# QSE — Windows + Android (simple, gratuit)
+# QSE — objectif: une icône sur Android (Windows)
 
-Tu es sur **Windows** et tu veux l'utiliser sur **Android**. Très bien: voici le seul chemin à suivre.
+Tu as raison: ce que tu veux est simple à formuler.
 
-## Ce que tu fais (sans terminal)
+## Résultat attendu
 
-1. Installe **Docker Desktop** (gratuit) et lance-le.
-2. Installe **Expo Go** sur ton téléphone Android.
-3. Connecte **PC et téléphone au même Wi‑Fi**.
-4. Dans le dossier du projet, double-clique **`DEMARRER_QSE_WINDOWS.bat`**.
-5. Quand le QR code apparaît, ouvre Expo Go et scanne.
+- Tu touches une **icône QSE** sur ton smartphone Android.
+- L'app s'ouvre directement.
 
-C'est tout.
+## Chemin le plus simple (gratuit)
 
-## Pour arrêter
+### Étape 1 — Générer l'APK (une seule fois)
 
-- Double-clique **`ARRETER_QSE_WINDOWS.bat`**.
+Sur Windows, double-clique:
 
-## Si ça ne marche pas (ordre strict)
+- **`GENERER_APK_WINDOWS.bat`**
 
-1. Docker Desktop est-il bien lancé ?
-2. Téléphone et PC sont-ils sur le même Wi‑Fi ?
-3. Pare-feu Windows: autoriser Docker + Node + port `8001`.
-4. Redémarrer Docker Desktop puis relancer `DEMARRER_QSE_WINDOWS.bat`.
+Ensuite:
+1. attends la fin,
+2. ouvre le lien affiché,
+3. télécharge l'APK,
+4. installe l'APK sur ton Android.
+
+Tu auras l'icône QSE sur le téléphone.
+
+### Étape 2 — Utiliser l'app au quotidien
+
+- Tu peux lancer l'app via son icône Android.
+- La synchronisation des fiches en attente reste **manuelle** (bouton `Synchroniser`).
+
+## Si tu veux lancer l'environnement local (backend + QR)
+
+- Double-clique **`DEMARRER_QSE_WINDOWS.bat`**
 
 ## Important
 
-- `github.io/QSE` ne lance pas l'application (page d'info uniquement).
-- La synchronisation des fiches reste **manuelle** (bouton `Synchroniser`).
+- `github.io/QSE` ne lance pas l'application mobile.
+- C'est seulement une page d'information.
