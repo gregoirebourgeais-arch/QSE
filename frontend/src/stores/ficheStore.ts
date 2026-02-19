@@ -3,10 +3,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FicheQSE, Photo, ActionCorrective } from '../types';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+import { ficheApi } from '../utils/api';
+
+export interface OfflineFiche {
+  local_id: string;
+  payload: Partial<FicheQSE>;
+  queued_at: string;
+  attempts: number;
+  last_error?: string;
+}
 
 interface FicheState {
   currentFiche: Partial<FicheQSE>;
-  offlineFiches: FicheQSE[];
+  offlineFiches: OfflineFiche[];
+  isSyncingOffline: boolean;
   setCurrentFiche: (fiche: Partial<FicheQSE>) => void;
   updateCurrentFiche: (updates: Partial<FicheQSE>) => void;
   resetCurrentFiche: () => void;
@@ -14,10 +24,13 @@ interface FicheState {
   removePhoto: (photoId: string) => void;
   addAction: (action: ActionCorrective) => void;
   removeAction: (index: number) => void;
-  saveOffline: (fiche: FicheQSE) => Promise<void>;
+  saveOffline: (fiche: Partial<FicheQSE>) => Promise<void>;
   loadOfflineFiches: () => Promise<void>;
-  removeOfflineFiche: (id: string) => Promise<void>;
+  removeOfflineFiche: (localId: string) => Promise<void>;
+  syncOfflineFiches: () => Promise<{ synced: number; failed: number }>;
 }
+
+const OFFLINE_STORAGE_KEY = 'offlineFiches';
 
 const initialFiche: Partial<FicheQSE> = {
   type: 'Qualité',
@@ -37,53 +50,60 @@ const initialFiche: Partial<FicheQSE> = {
 export const useFicheStore = create<FicheState>((set, get) => ({
   currentFiche: { ...initialFiche },
   offlineFiches: [],
-  
+  isSyncingOffline: false,
+
   setCurrentFiche: (fiche) => set({ currentFiche: fiche }),
-  
+
   updateCurrentFiche: (updates) => set((state) => ({
     currentFiche: { ...state.currentFiche, ...updates }
   })),
-  
+
   resetCurrentFiche: () => set({ currentFiche: { ...initialFiche, date_evenement: new Date().toISOString(), heure_evenement: format(new Date(), 'HH:mm') } }),
-  
+
   addPhoto: (photo) => set((state) => ({
     currentFiche: {
       ...state.currentFiche,
       photos: [...(state.currentFiche.photos || []), photo]
     }
   })),
-  
+
   removePhoto: (photoId) => set((state) => ({
     currentFiche: {
       ...state.currentFiche,
       photos: (state.currentFiche.photos || []).filter(p => p.id !== photoId)
     }
   })),
-  
+
   addAction: (action) => set((state) => ({
     currentFiche: {
       ...state.currentFiche,
       actions_correctives: [...(state.currentFiche.actions_correctives || []), action]
     }
   })),
-  
+
   removeAction: (index) => set((state) => ({
     currentFiche: {
       ...state.currentFiche,
       actions_correctives: (state.currentFiche.actions_correctives || []).filter((_, i) => i !== index)
     }
   })),
-  
+
   saveOffline: async (fiche) => {
-    const fiches = get().offlineFiches;
-    const updated = [...fiches, fiche];
-    await AsyncStorage.setItem('offlineFiches', JSON.stringify(updated));
+    const record: OfflineFiche = {
+      local_id: uuidv4(),
+      payload: fiche,
+      queued_at: new Date().toISOString(),
+      attempts: 0,
+    };
+
+    const updated = [...get().offlineFiches, record];
+    await AsyncStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(updated));
     set({ offlineFiches: updated });
   },
-  
+
   loadOfflineFiches: async () => {
     try {
-      const data = await AsyncStorage.getItem('offlineFiches');
+      const data = await AsyncStorage.getItem(OFFLINE_STORAGE_KEY);
       if (data) {
         set({ offlineFiches: JSON.parse(data) });
       }
@@ -91,10 +111,43 @@ export const useFicheStore = create<FicheState>((set, get) => ({
       console.error('Error loading offline fiches:', e);
     }
   },
-  
-  removeOfflineFiche: async (id) => {
-    const fiches = get().offlineFiches.filter(f => f.id !== id);
-    await AsyncStorage.setItem('offlineFiches', JSON.stringify(fiches));
+
+  removeOfflineFiche: async (localId) => {
+    const fiches = get().offlineFiches.filter(f => f.local_id !== localId);
+    await AsyncStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(fiches));
     set({ offlineFiches: fiches });
+  },
+
+  syncOfflineFiches: async () => {
+    const pending = [...get().offlineFiches];
+
+    if (pending.length === 0 || get().isSyncingOffline) {
+      return { synced: 0, failed: pending.length };
+    }
+
+    set({ isSyncingOffline: true });
+
+    const survivors: OfflineFiche[] = [];
+    let synced = 0;
+
+    for (const item of pending) {
+      try {
+        const createdFiche = await ficheApi.create(item.payload);
+        await ficheApi.validate(createdFiche.id);
+        await ficheApi.sendEmail(createdFiche.id);
+        synced += 1;
+      } catch (error: any) {
+        survivors.push({
+          ...item,
+          attempts: item.attempts + 1,
+          last_error: error?.message || 'Erreur réseau ou backend',
+        });
+      }
+    }
+
+    await AsyncStorage.setItem(OFFLINE_STORAGE_KEY, JSON.stringify(survivors));
+    set({ offlineFiches: survivors, isSyncingOffline: false });
+
+    return { synced, failed: survivors.length };
   },
 }));
