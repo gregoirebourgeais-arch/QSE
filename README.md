@@ -1,29 +1,129 @@
-# QSE — Windows + Android (icône sur smartphone)
+# QSE — objectif: une icône sur Android (Windows)
 
-Tu as trouvé le vrai problème. Ta capture indique:
-- Docker absent
-- Node absent
-- Yarn absent
+Tu as raison: ce que tu veux est simple à formuler.
 
-**Pour générer l'APK, le blocage principal est Node/npm absent.**
-Docker n'est pas obligatoire pour l'APK.
+## Résultat attendu
 
-## Ce que tu fais maintenant (simple)
+- Tu touches une **icône QSE** sur ton smartphone Android.
+- L'app s'ouvre directement.
 
-1. Installe Node.js LTS: https://nodejs.org/en/download
-2. Ferme/réouvre Windows (ou au minimum la session).
-3. Double-clique `GENERER_APK_WINDOWS.bat`.
-4. Connecte-toi à Expo si demandé.
-5. À la fin, clique le lien du build APK affiché.
+## Chemin le plus simple (gratuit)
 
-## Où cliquer si tu rates le lien
+### Étape 1 — Générer l'APK (une seule fois)
 
-- https://expo.dev/accounts
-- projet `qse-app`
-- onglet `Builds`
-- dernier build Android (APK)
+Sur Windows, double-clique:
 
-## Aide rapide
+- **[GENERER_APK_WINDOWS.bat](./GENERER_APK_WINDOWS.bat)**
+- **`GENERER_APK_WINDOWS.bat`**
 
-- Double-clique `DIAGNOSTIC_WINDOWS_ANDROID.bat` pour vérifier.
-- Double-clique `INSTALLER_APK_GUIDE.bat` pour ouvrir directement Expo Accounts.
+Ensuite:
+1. attends la fin,
+2. ouvre le lien affiché,
+3. télécharge l'APK,
+4. installe l'APK sur ton Android.
+
+Tu auras l'icône QSE sur le téléphone.
+
+### Étape 2 — Utiliser l'app au quotidien
+
+- Tu peux lancer l'app via son icône Android.
+- La synchronisation des fiches en attente reste **manuelle** (bouton `Synchroniser`).
+
+## Si tu veux lancer l'environnement local (backend + QR)
+
+- Double-clique **`DEMARRER_QSE_WINDOWS.bat`**
+
+## Important
+
+- `github.io/QSE` ne lance pas l'application mobile.
+- C'est seulement une page d'information.
+
+
+## Où trouver l'APK exactement ?
+
+Après `GENERER_APK_WINDOWS.bat`, le lien est affiché dans la fenêtre noire (terminal).
+
+Lien direct Expo (clic): **https://expo.dev/accounts**
+
+
+Si tu fermes la fenêtre, récupère-le ici :
+1. https://expo.dev/accounts
+2. Connecte-toi
+3. Projet **qse-app**
+4. Onglet **Builds**
+5. Dernier build Android (APK)
+
+Tu peux aussi double-cliquer **`INSTALLER_APK_GUIDE.bat`** (ça ouvre directement la page Expo Accounts).
+# QSE - démarrage fiable (mobile terrain + mode manuel)
+
+
+> ⚠️ Important: ouvrir `https://...github.io/QSE/` ne lance **pas** l'application.
+> GitHub Pages affiche seulement une page statique d'instructions.
+> Pour utiliser l'app, il faut lancer le backend + Expo localement (voir étapes ci-dessous).
+
+Tu as demandé du **manuel** pour la synchro. C'est maintenant le comportement: rien ne part automatiquement.
+
+## 1) Backend: 2 options
+
+### Option A (avec Docker)
+```bash
+docker compose up -d --build
+```
+API: `http://localhost:8001`
+
+### Option B (sans Docker, gratuit)
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn server:app --host 0.0.0.0 --port 8001
+```
+
+## 2) Frontend mobile (Expo)
+
+```bash
+cd frontend
+yarn install
+yarn start:local
+```
+
+Si ton réseau bloque les checks Expo:
+```bash
+yarn start:offline
+```
+
+## 3) URL backend côté mobile
+
+Ordre de priorité:
+1. `EXPO_PUBLIC_BACKEND_URL`
+2. web: `http://<hostname_courant>:8001`
+3. mobile Expo: IP machine Expo + `:8001`
+4. fallback: `http://localhost:8001`
+
+Exemple conseillé sur mobile réel (phone sur même Wi‑Fi que le PC):
+```bash
+cd frontend
+cp env.sample .env
+# puis mets l'IP locale de ton PC
+# EXPO_PUBLIC_BACKEND_URL=http://192.168.1.50:8001
+```
+
+## 4) Hors ligne en atelier
+
+- Si réseau KO: la fiche est mise en file locale.
+- Tu appuies manuellement sur **Synchroniser** pour envoyer.
+- Pas de sync auto.
+
+## 5) Dépannage rapide (si "je ne peux pas lancer")
+
+1. Vérifie backend vivant:
+```bash
+curl http://localhost:8001/api/
+```
+2. Vérifie que le téléphone atteint ton PC:
+   - depuis le téléphone: ouvre `http://IP_DU_PC:8001/api/` dans le navigateur
+3. Si ça ne répond pas:
+   - pare-feu PC à ouvrir sur port `8001`
+   - téléphone et PC sur le même réseau
+4. Si Expo refuse de démarrer (erreurs réseau): utiliser `yarn start:offline`.
