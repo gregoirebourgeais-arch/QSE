@@ -2,8 +2,9 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ConfigData } from '../types';
 import axios from 'axios';
+import { getBackendUrl } from '../utils/backendUrl';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_URL = getBackendUrl();
 
 const DEFAULT_CONFIG: ConfigData = {
   services: [
