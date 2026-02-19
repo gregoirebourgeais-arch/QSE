@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,7 +19,7 @@ import { statsApi } from '../../src/utils/api';
 export default function Home() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { offlineFiches, resetCurrentFiche } = useFicheStore();
+  const { offlineFiches, resetCurrentFiche, syncOfflineFiches, isSyncingOffline } = useFicheStore();
   const [stats, setStats] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -38,6 +40,19 @@ export default function Home() {
     setRefreshing(true);
     await loadStats();
     setRefreshing(false);
+  };
+
+
+  const handleSyncOffline = async () => {
+    const result = await syncOfflineFiches();
+
+    if (result.synced > 0) {
+      Alert.alert('Synchronisation terminée', `${result.synced} fiche(s) envoyée(s), ${result.failed} en attente.`);
+      await loadStats();
+      return;
+    }
+
+    Alert.alert('Synchronisation', 'Aucune fiche envoyée. Vérifiez la connexion et réessayez.');
   };
 
   const handleNewFiche = () => {
@@ -87,9 +102,18 @@ export default function Home() {
                 {offlineFiches.length} fiche(s) en attente
               </Text>
               <Text style={styles.offlineSubtitle}>
-                Seront envoyées dès connexion
+                Envoi manuel uniquement (appuyez sur Synchroniser)
               </Text>
             </View>
+
+            <TouchableOpacity
+              style={[styles.syncButton, isSyncingOffline && styles.syncButtonDisabled]}
+              onPress={handleSyncOffline}
+              disabled={isSyncingOffline}
+            >
+              <Ionicons name="sync" size={16} color="#0D0D0D" />
+              <Text style={styles.syncButtonText}>{isSyncingOffline ? 'Sync...' : 'Synchroniser'}</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -199,6 +223,8 @@ const styles = StyleSheet.create({
   },
   offlineInfo: {
     marginLeft: 12,
+    flex: 1,
+    marginRight: 10,
   },
   offlineTitle: {
     fontSize: 16,
@@ -209,6 +235,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
   },
+
+  syncButton: {
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  syncButtonDisabled: {
+    opacity: 0.6,
+  },
+  syncButtonText: {
+    color: '#0D0D0D',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
   statsContainer: {
     marginBottom: 24,
   },

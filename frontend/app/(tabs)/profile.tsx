@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,28 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 import { useAuthStore } from '../../src/stores/authStore';
+import {
+  clearBackendUrlOverride,
+  getCurrentBackendUrl,
+  setBackendUrlOverride,
+} from '../../src/utils/backendConfig';
 
 export default function Profile() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
+
+  const [backendUrl, setBackendUrl] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setBackendUrl(getCurrentBackendUrl());
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -34,9 +47,34 @@ export default function Profile() {
     );
   };
 
+  const checkBackend = async (urlToCheck: string) => {
+    const normalized = /^https?:\/\//.test(urlToCheck) ? urlToCheck : `http://${urlToCheck}`;
+    await axios.get(`${normalized.replace(/\/+$/, '')}/api/`, { timeout: 8000 });
+  };
+
+  const handleSaveBackend = async () => {
+    try {
+      setIsSaving(true);
+      await checkBackend(backendUrl);
+      const saved = await setBackendUrlOverride(backendUrl);
+      setBackendUrl(saved);
+      Alert.alert('Backend enregistré', 'Nouvelle URL backend enregistrée.');
+    } catch (e) {
+      Alert.alert('Erreur backend', 'URL invalide ou backend inaccessible.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResetBackend = async () => {
+    await clearBackendUrlOverride();
+    const current = getCurrentBackendUrl();
+    setBackendUrl(current);
+    Alert.alert('Backend réinitialisé', `URL active: ${current}`);
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* User Info */}
       <View style={styles.userCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
@@ -50,57 +88,40 @@ export default function Profile() {
         <Text style={styles.userService}>{user?.service}</Text>
       </View>
 
-      {/* Menu Items */}
       <View style={styles.menu}>
-        <Text style={styles.sectionTitle}>Paramètres</Text>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="notifications-outline" size={24} color="#FFF" />
-          <Text style={styles.menuItemText}>Notifications</Text>
-          <Ionicons name="chevron-forward" size={24} color="#666" />
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Backend (modifiable après installation)</Text>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="cloud-outline" size={24} color="#FFF" />
-          <Text style={styles.menuItemText}>Synchronisation</Text>
-          <Ionicons name="chevron-forward" size={24} color="#666" />
-        </TouchableOpacity>
+        <View style={styles.backendCard}>
+          <Text style={styles.backendLabel}>URL backend</Text>
+          <TextInput
+            value={backendUrl}
+            onChangeText={setBackendUrl}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="https://ton-backend.com"
+            placeholderTextColor="#777"
+            style={styles.backendInput}
+          />
 
-        {user?.is_admin && (
-          <>
-            <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Administration</Text>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="settings-outline" size={24} color="#FF6B00" />
-              <Text style={[styles.menuItemText, { color: '#FF6B00' }]}>Configuration</Text>
-              <Ionicons name="chevron-forward" size={24} color="#FF6B00" />
+          <View style={styles.backendButtons}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleSaveBackend} disabled={isSaving}>
+              <Text style={styles.primaryBtnText}>{isSaving ? 'Validation...' : 'Tester + Enregistrer'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="mail-outline" size={24} color="#FF6B00" />
-              <Text style={[styles.menuItemText, { color: '#FF6B00' }]}>Emails</Text>
-              <Ionicons name="chevron-forward" size={24} color="#FF6B00" />
+            <TouchableOpacity style={styles.secondaryBtn} onPress={handleResetBackend}>
+              <Text style={styles.secondaryBtnText}>Réinitialiser</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Ionicons name="people-outline" size={24} color="#FF6B00" />
-              <Text style={[styles.menuItemText, { color: '#FF6B00' }]}>Utilisateurs</Text>
-              <Ionicons name="chevron-forward" size={24} color="#FF6B00" />
-            </TouchableOpacity>
-          </>
-        )}
+          </View>
+        </View>
       </View>
 
-      {/* Logout */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={24} color="#F44336" />
         <Text style={styles.logoutText}>Se déconnecter</Text>
       </TouchableOpacity>
 
-      {/* App Info */}
       <View style={styles.appInfo}>
         <Text style={styles.appVersion}>QSE App v1.0.0</Text>
-        <Text style={styles.appCopyright}>© 2025 - Application Industrielle</Text>
       </View>
     </ScrollView>
   );
@@ -127,29 +148,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 16,
   },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#FFF',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  userCode: {
-    fontSize: 16,
-    color: '#FF6B00',
-    marginBottom: 4,
-  },
-  userService: {
-    fontSize: 14,
-    color: '#888',
-  },
-  menu: {
-    padding: 20,
-  },
+  avatarText: { fontSize: 32, fontWeight: '700', color: '#FFF' },
+  userName: { fontSize: 24, fontWeight: '700', color: '#FFF', marginBottom: 4 },
+  userCode: { fontSize: 16, color: '#FF6B00', marginBottom: 4 },
+  userService: { fontSize: 14, color: '#888' },
+  menu: { padding: 20 },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
@@ -158,20 +161,39 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
+  backendCard: {
     backgroundColor: '#1A1A1A',
     borderRadius: 12,
-    marginBottom: 8,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#333',
   },
-  menuItemText: {
-    flex: 1,
-    fontSize: 16,
+  backendLabel: { color: '#FFF', fontWeight: '600', marginBottom: 8 },
+  backendInput: {
+    backgroundColor: '#101010',
     color: '#FFF',
-    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
+  backendButtons: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  primaryBtn: {
+    backgroundColor: '#FF6B00',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  primaryBtnText: { color: '#111', fontWeight: '700' },
+  secondaryBtn: {
+    borderColor: '#555',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  secondaryBtnText: { color: '#FFF', fontWeight: '600' },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,24 +205,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F44336',
   },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F44336',
-    marginLeft: 8,
-  },
-  appInfo: {
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 40,
-  },
-  appVersion: {
-    fontSize: 14,
-    color: '#666',
-  },
-  appCopyright: {
-    fontSize: 12,
-    color: '#444',
-    marginTop: 4,
-  },
+  logoutText: { fontSize: 16, fontWeight: '600', color: '#F44336', marginLeft: 8 },
+  appInfo: { alignItems: 'center', padding: 20, paddingBottom: 40 },
+  appVersion: { fontSize: 14, color: '#666' },
 });
