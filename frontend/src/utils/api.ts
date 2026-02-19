@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { FicheQSE } from '../types';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { getBackendUrl } from './backendUrl';
+
+const API_URL = getBackendUrl();
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
