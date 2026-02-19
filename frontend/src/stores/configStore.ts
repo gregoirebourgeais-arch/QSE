@@ -76,7 +76,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   loadConfig: async () => {
     try {
       // First try to load from API
-      const response = await axios.get(`${API_URL}/api/config`);
+      const response = await axios.get(`${getCurrentBackendUrl()}/api/config`);
       if (response.data && response.data.services) {
         set({ config: response.data, isLoading: false });
         await AsyncStorage.setItem('config', JSON.stringify(response.data));
@@ -103,7 +103,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   
   updateConfig: async (config) => {
     try {
-      await axios.put(`${API_URL}/api/config`, config);
+      await axios.put(`${getCurrentBackendUrl()}/api/config`, config);
       await AsyncStorage.setItem('config', JSON.stringify(config));
       set({ config });
     } catch (e) {
