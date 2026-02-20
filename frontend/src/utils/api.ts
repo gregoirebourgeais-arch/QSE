@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { FicheQSE } from '../types';
 
-import { getCurrentBackendUrl } from './backendConfig';
+import { getBackendUrl } from './backendUrl';
+
+const API_URL = getBackendUrl();
 
 const api = axios.create({
   timeout: 30000,

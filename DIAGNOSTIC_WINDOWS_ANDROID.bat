@@ -2,6 +2,7 @@
 title QSE - Diagnostic Windows Android
 cd /d "%~dp0"
 
+<<<<<<< codex/rendre-l-application-autonome
 echo === QSE Diagnostic (Windows + Android) ===
 echo.
 echo OBJECTIF 1: Generer APK (icone Android)
@@ -42,15 +43,48 @@ echo [LOCAL 2/3] Yarn
 where yarn >nul 2>nul
 if errorlevel 1 (
   echo - Yarn: ABSENT ^(sera installe automatiquement par GENERER_APK_WINDOWS.bat^)
+=======
+echo === QSE Diagnostic ===
+echo.
+
+echo [1/4] Docker
+where docker >nul 2>nul
+if errorlevel 1 (
+  echo - Docker: ABSENT
+) else (
+  docker --version
+)
+
+echo.
+echo [2/4] Node
+where node >nul 2>nul
+if errorlevel 1 (
+  echo - Node: ABSENT
+) else (
+  node -v
+)
+
+echo.
+echo [3/4] Yarn
+where yarn >nul 2>nul
+if errorlevel 1 (
+  echo - Yarn: ABSENT
+>>>>>>> main
 ) else (
   yarn -v
 )
 
+<<<<<<< codex/rendre-l-application-autonome
 echo [LOCAL 3/3] Fichier frontend\.env
+=======
+echo.
+echo [4/4] Fichier frontend\.env
+>>>>>>> main
 if exist "frontend\.env" (
   echo - PRESENT
   findstr /B "EXPO_PUBLIC_BACKEND_URL=" "frontend\.env"
 ) else (
+<<<<<<< codex/rendre-l-application-autonome
   echo - ABSENT ^(normal si tu n'utilises pas le mode local QR^)
 )
 
@@ -59,4 +93,11 @@ echo === Lecture rapide ===
 echo - Pour TON besoin (icone Android): Node+npm doivent etre presents.
 echo - Docker n'est PAS obligatoire pour generer l'APK.
 echo.
+=======
+  echo - ABSENT
+)
+
+echo.
+echo === Fin diagnostic ===
+>>>>>>> main
 pause
