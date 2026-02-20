@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ConfigData } from '../types';
 import axios from 'axios';
-
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { getCurrentBackendUrl } from '../utils/backendConfig';
 
 const DEFAULT_CONFIG: ConfigData = {
   services: [
@@ -75,7 +74,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   loadConfig: async () => {
     try {
       // First try to load from API
-      const response = await axios.get(`${API_URL}/api/config`);
+      const response = await axios.get(`${getCurrentBackendUrl()}/api/config`);
       if (response.data && response.data.services) {
         set({ config: response.data, isLoading: false });
         await AsyncStorage.setItem('config', JSON.stringify(response.data));
@@ -102,7 +101,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   
   updateConfig: async (config) => {
     try {
-      await axios.put(`${API_URL}/api/config`, config);
+      await axios.put(`${getCurrentBackendUrl()}/api/config`, config);
       await AsyncStorage.setItem('config', JSON.stringify(config));
       set({ config });
     } catch (e) {

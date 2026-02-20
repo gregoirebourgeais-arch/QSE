@@ -22,7 +22,7 @@ import { useAuthStore } from '../src/stores/authStore';
 import { useFicheStore } from '../src/stores/ficheStore';
 import { useConfigStore } from '../src/stores/configStore';
 import { ficheApi } from '../src/utils/api';
-import { FicheQSE, Photo } from '../src/types';
+import { Photo } from '../src/types';
 
 import { BigButton } from '../src/components/BigButton';
 import { TypeSelector } from '../src/components/TypeSelector';
@@ -36,7 +36,7 @@ type Step = 'type' | 'info' | 'details' | 'description' | 'treatment' | 'causes'
 export default function NewFiche() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { currentFiche, updateCurrentFiche, addPhoto, removePhoto, resetCurrentFiche } = useFicheStore();
+  const { currentFiche, updateCurrentFiche, addPhoto, removePhoto, resetCurrentFiche, saveOffline } = useFicheStore();
   const { config } = useConfigStore();
   
   const [step, setStep] = useState<Step>('type');
@@ -151,14 +151,14 @@ export default function NewFiche() {
 
   const handleValidate = async () => {
     setIsLoading(true);
-    try {
-      // Prepare fiche data
-      const ficheData = {
-        ...currentFiche,
-        created_by: user?.id || '',
-        constate_par: currentFiche.constate_par || `${user?.first_name} ${user?.name}`,
-      };
 
+    const ficheData = {
+      ...currentFiche,
+      created_by: user?.id || '',
+      constate_par: currentFiche.constate_par || `${user?.first_name} ${user?.name}`,
+    };
+
+    try {
       // Create fiche
       const createdFiche = await ficheApi.create(ficheData);
       
@@ -183,7 +183,30 @@ export default function NewFiche() {
       );
     } catch (error: any) {
       console.error('Error validating fiche:', error);
-      Alert.alert('Erreur', 'Impossible de valider la fiche. Réessayez.');
+
+      const ficheToQueue = {
+        ...ficheData,
+        date_evenement: ficheData.date_evenement || new Date().toISOString(),
+        heure_evenement: ficheData.heure_evenement || format(new Date(), 'HH:mm'),
+        description: ficheData.description || '',
+        criticite: ficheData.criticite || 'Mineure',
+        type: ficheData.type || 'Qualité',
+        service_emetteur: ficheData.service_emetteur || 'Non défini',
+        created_by: ficheData.created_by || '',
+        constate_par: ficheData.constate_par || '',
+        actions_correctives: ficheData.actions_correctives || [],
+        photos: ficheData.photos || [],
+      };
+
+      await saveOffline(ficheToQueue);
+
+      Alert.alert(
+        'Mode hors ligne',
+        'Fiche enregistrée sur le téléphone. Elle sera envoyée automatiquement dès que vous relancez la synchronisation.'
+      );
+
+      resetCurrentFiche();
+      router.replace('/(tabs)/home');
     } finally {
       setIsLoading(false);
     }

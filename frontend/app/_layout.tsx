@@ -5,6 +5,7 @@ import { useAuthStore } from '../src/stores/authStore';
 import { useConfigStore } from '../src/stores/configStore';
 import { useFicheStore } from '../src/stores/ficheStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { initializeBackendUrlConfig } from '../src/utils/backendConfig';
 
 export default function RootLayout() {
   const { loadUser, isLoading: authLoading } = useAuthStore();
@@ -12,9 +13,14 @@ export default function RootLayout() {
   const { loadOfflineFiches } = useFicheStore();
 
   useEffect(() => {
-    loadUser();
-    loadConfig();
-    loadOfflineFiches();
+    const initialize = async () => {
+      await initializeBackendUrlConfig();
+      loadUser();
+      loadConfig();
+      loadOfflineFiches();
+    };
+
+    initialize();
   }, []);
 
   if (authLoading || configLoading) {
