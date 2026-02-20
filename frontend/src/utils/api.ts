@@ -1,14 +1,18 @@
 import axios from 'axios';
 import { FicheQSE } from '../types';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { getCurrentBackendUrl } from './backendConfig';
 
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  config.baseURL = `${getCurrentBackendUrl()}/api`;
+  return config;
 });
 
 export const userApi = {
@@ -55,7 +59,7 @@ export const ficheApi = {
     const response = await api.post(`/fiches/${id}/send-email`);
     return response.data;
   },
-  download: (id: string) => `${API_URL}/api/fiches/${id}/download`,
+  download: (id: string) => `${getCurrentBackendUrl()}/api/fiches/${id}/download`,
 };
 
 export const statsApi = {
